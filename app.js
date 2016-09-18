@@ -1,12 +1,14 @@
 var express = require('express'),
-    app = express(),
-    server = require('http').createServer(app),
-    io = require('socket.io').listen(server),
-    mongoose = require('mongoose'),
-    users = {},
-    request = require('request'),
-    cheerio = require('cheerio'),
-    fs = require('fs');
+app = express(),
+server = require('http').createServer(app),
+io = require('socket.io').listen(server),
+mongoose = require('mongoose'),
+users = {},
+users_available = [],
+users_unavailable = [],
+request = require('request'),
+cheerio = require('cheerio'),
+fs = require('fs');
 
 server.listen(3000); // listens to port 3000
 
@@ -19,7 +21,8 @@ mongoose.connect('mongodb://localhost/chat', function (err) {
 }); //db is created
 
 var chatSchema = mongoose.Schema({
-    nick: String,
+    speaker: String,
+    receiver: String,
     msg: String,
     created: {type: Date, default: Date.now()}
 }); // can use javascript objects, eg. name: {first: String, last: String}
@@ -31,60 +34,94 @@ app.get('/', function (req, res) {
 });
 
 io.sockets.on('connection', function (socket) {
-    var query = Chat.find({});
-    query.sort('-created').exec(function (err, docs) {
-        if (err) throw err;
-        socket.emit('load old msgs', docs);
-    });
 
     updateNicknames();
 
     socket.on('new user', function (data, callback) {
-        if (data in users) {
+        if (users[data] != null) {
             callback(false, "");
         } else {
             callback(true, data);
             socket.nickname = data;
-            users[socket.nickname] = socket;
+            socket.available = true;
+            users[data] = socket;
+            users_available.push(socket);
             updateNicknames();
             io.sockets.emit('alert', socket.nickname + " has entered the chat room.");
+            tryConnecting(socket);
         }
+
+        var query = Chat.find({speaker: socket.nickname});
+         query.sort('-created').exec(function (err, docs) {
+        if (err) throw err;
+        socket.emit('load old msgs', docs);
+         });
     });
 
-    function updateNicknames() {
-        io.sockets.emit('usernames', Object.keys(users));
+    function tryConnecting(socket){
+     for(var i = 0; i<users_available.length; i++){
+        if(!(users_available[i].nickname === socket.nickname)){
+            users_available[i].partner = socket.nickname;
+            socket.partner = users_available[i].nickname;
+            socket.available = false;
+            users_available[i].available = false;
+            console.log("Connected " + users_available[i].nickname + " with " + socket.nickname);
+            movePair(socket, users_available[i], users_available, users_unavailable);
+            console.log("available: " + users_available.length + " | unavailable: " + users_unavailable.length);
+        }
+    }
     }
 
-    socket.on('send message', function (data, callback) {
-        var str = data.trim();
-        if (str.substr(0, 3) === '/w ') {
-            str = str.substr(3);
-            var ind = str.indexOf(' ');
-            if (ind !== -1) {
-                var name = str.substr(0, ind);
-                var msg = str.substr(ind + 1);
-                if (name in users && name != socket.nickname) {
-                    users[name].emit('whisper', {msg: msg, nick: "["+socket.nickname +" to " +name+"]"});
-                    users[socket.nickname].emit('whisper',{msg: msg, nick: "["+socket.nickname +" to " +name+"]"});
-                } else {
-                    callback("Error! Enter a valid user.");
-                }
-            } else {
-                callback("Error! Please enter a msg for whisper.");
-            }
-        } else {
-            var newMsg = new Chat({msg: str, nick: socket.nickname});
-            newMsg.save(function (err) {
-                if (err) throw err;
-                io.sockets.emit('new message', {msg: data, nick: socket.nickname, created: Date.now()});
-            });
-        }
-    });
+function movePair(elem1, elem2, arr1, arr2){
+    arr2.push(elem1);
+    arr2.push(elem2);
+    removeIf(arr1, function (elem) { return (elem === elem1) || (elem == elem2); })
+    }
 
-    socket.on('disconnect', function (data) {
-        if (!socket.nickname) return;
-        io.sockets.emit('alert', socket.nickname + " has quit the chat room.");
-        delete users[socket.nickname];
-        updateNicknames();
+function moveOne(elem, arr1, arr2){
+    arr2.push(elem);
+    removeIf(arr1, function (elem1) { return elem === elem1; })
+}
+
+function removeIf(arr, predicate) {
+    for (var i = 0; i < arr.length; i++) {
+        if (predicate(arr[i])) {
+            arr.splice(i--, 1);
+        }
+    }
+}
+
+function deleteUserFromQueue(user){
+    var queue = (user.available)? users_available : users_unavailable;
+    removeIf(queue, function(elem){return user==elem});
+}
+
+function updateNicknames() {
+    io.sockets.emit('usernames', Object.keys(users));
+}
+
+socket.on('send message', function (data, callback) {
+    str = data.trim();
+    if(socket.partner == null){
+        socket.emit('alert', "No partner to chat with.");
+        return;
+    }
+    var newMsg = new Chat({msg: str, speaker: socket.nickname, receiver: socket.partner});
+    newMsg.save(function (err) {
+        if (err) throw err;
+        users[socket.partner].emit('new message', {msg: data, speaker: socket.nickname, created: Date.now()});
+        socket.emit('new message', {msg: data, speaker: socket.nickname, created: Date.now()});
     });
+});
+
+socket.on('disconnect', function (data) {
+    if (!socket.nickname) return;
+    io.sockets.emit('alert', socket.nickname + " has quit the chat room.");
+    if(!socket.available){
+        moveOne(users[socket.partner], users_unavailable, users_available);
+    }
+    deleteUserFromQueue(users[socket.nickname]);
+    delete users[socket.nickname];
+    updateNicknames();
+});
 });
