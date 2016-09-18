@@ -37,30 +37,32 @@
 <script>
  jQuery(function ($) {//shorthand document.ready
   function showErrorMessage(msg){
-    $('#error-msg').val(msg);
+    $('#error-msg').html(msg);
   }
   var $loginForm = $('#login-form');
   var $registerForm = $('#register-form');
     $loginForm.submit(function(e){
         e.preventDefault();
-        socket.emit('attempt login', {name: $('#login-user').val(), password: $('#login-pass').val()}, function(success){
+        socket.emit('attempt login', {name: $('#login-user').val(), password: $('#login-pass').val()}, function(success,errmsg){
             if(success){
               loadPage('chat');
               // set page to derp
             } else {
               // wasn't successful
+              showErrorMessage(errmsg);
             }
         });
     });
     $registerForm.submit(function(e){
         e.preventDefault();
-        socket.emit('attempt register', {name: $('#register-user').val(), password: $('#register-pass').val()}, function(success){
+        socket.emit('attempt register', {name: $('#register-user').val(), password: $('#register-pass').val()}, function(success,errmsg){
           if(success){
             loadPage('chat');
             //document.location.href = "/public/chat.html";
             // set page to derp
           } else {
             // wasn't successful
+            showErrorMessage(errmsg);
           }
         });
     });
