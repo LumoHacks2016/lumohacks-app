@@ -114,10 +114,6 @@
             <input size="35" class="inputField" id="message" autocomplete="off">
         </form>
     </div>
-    <div id="sidebar">
-        <p class ="marl msg">Currently online</p>
-        <div id="users"></div>
-    </div>
 </div>
 
 <div id="page2Wrap">
@@ -186,7 +182,7 @@
         $nickForm.submit(function (e) {
             e.preventDefault();
             if($nickBox.val().trim() != "") {
-                socket.emit('new user', $nickBox.val(), function (success, nick) {
+                socket.emit('new user', {name: $nickBox.val(), password: "pass", tags: [], description: ""}, function (success, nick) {
                     if (success) {
                         $('#nickWrap').html('<p class="msg marl mart"> Welcome, ' + nick + '!</br></br></p>');
                         $('#contentWrap').show();
@@ -235,7 +231,7 @@
             if (cls == "alert" || cls == "error") {
                 $chat.append("<span class='msg " + cls + "'>" + data + "</span><br/>");
             } else {
-                $chat.append("<span class='msg " + cls + "'><b>" + data.nick + ": </b>" + data.msg + "</span><br/>");
+                $chat.append("<span class='msg " + cls + "'><b>" + data.speaker + ": </b>" + data.msg + "</span><br/>");
             }
             if(shouldAnimate)
             $chat[0].scrollTop = $chat[0].scrollHeight;
@@ -258,6 +254,10 @@
              for(var i = 0; i<docs.length; i++){
                 displayMsg(docs[i], 'msg');
             }
+        });
+
+        socket.on('connected', function(data){
+             $('#nickWrap').html("Chatting with " + data+"!");
         });
 
         socket.on('new message', function (data) {
