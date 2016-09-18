@@ -1,0 +1,125 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="/public/profilepage.css">
+
+<script src="https://ajax.aspnetcdn.com/ajax/knockout/knockout-3.3.0.js"></script>
+<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+<script>
+     jQuery(function ($) {//shorthand document.ready
+        var $descriptionField = $('#changeTheDescription');
+        var $nameField = $('#nicknameChange');
+        //socket.emit('new user', {name: "Bob", password: "pass", tags: [true, false, true], description: "sample description"}, function (success, nick) {
+        //    socket.emit('get socket state', function(success, nick){});
+        //});
+        socket.emit('get socket state', function(success, data){});
+
+        var TAGS = ["I am a doctor", "I am seeking emotional counselling",
+       "I am seeking medical advice", "I am potato"];
+        var TAGS_ID = {
+            I_AM_A_DOCTOR : 0,
+            I_AM_SEEKING_EMOTIONAL_COUNSELLING : 1,
+            I_AM_POTATO : 2,
+            NUM_TAGS : 3
+        }
+
+        var name_old;
+        var description_old;
+        var tags_old;
+        var tags;
+
+
+        var $acceptButton = $('#accept');
+        $acceptButton.click(function(e){
+            e.preventDefault();
+            socket.emit('change name', $nameField.val(), function(success){});
+            socket.emit('change description', $descriptionField.val(), function(success){});
+            updateTagValues();
+            socket.emit('change tags', tags, function(success){});
+            alert("accept");
+            loadPage('chat');
+        });
+
+        var $cancelButton = $('#cancel');
+        $cancelButton.click(function(e){
+            e.preventDefault();
+            socket.emit('change name', name_old, function(success){});
+            socket.emit('change description', description_old, function(success){});
+            socket.emit('change tags', tags_old, function(success){});
+            alert("cancel");
+            loadPage('chat');
+        });
+
+        socket.on('receive socket state', function (data) {
+         /*   alert("Received socket state. Name: " + data.name + " Description: " + data.description + " Tags (size): " + data.tags.length);*/
+            name_old = data.name;
+            description_old = data.description;
+            tags_old = data.tags;
+            tags = tags_old;
+            outputName(data.name);
+            outputDescription(data.description);
+            outputTags(data.tags);
+        });
+
+        function outputName(name){
+            $nameField.val(name);
+        }
+
+        function outputDescription(description){
+            $descriptionField.val(description);
+        }
+
+        function outputTags(tags){
+            var html = '';
+            for(var i = 0; i<TAGS.length; i++){
+                html+='<input type="checkbox" id="tag'+i+'"';
+                if(tags[i]){
+                    html+=' checked="checked"';
+                }
+                html +='"/><label for="tag'+i+'" class="words">' + TAGS[i] + '</label><br><br>';
+            }
+            $('#tagOutput').html(html);
+        }
+
+         function updateTagValues(){
+            for(var i = 0; i<TAGS.length; i++){
+                tags[i] = $('#tag'+i).is(':checked');
+            }
+         }
+    });
+</script>
+
+</head>
+
+<body>
+	<div class="formProfile" id ="userProfile">
+
+     <div id="nickname">
+      <p class="words" >Update profile</p><br>
+  </div>
+
+  <div id ="changeUserWrap">
+      <p class="words" >Enter a new username:</p>
+      <form id="changeUser">
+       <input size="35" id="nicknameChange">   
+   </form>
+</div>
+
+<div id ="changeDescriptionWrap">
+  <p class="words">Description:</p>
+  <form id="descriptionForm">
+   <textarea maxlength="100" id="changeTheDescription"></textarea>
+</form>
+</div>
+
+<div id ="changeTagWrap">
+  <p class="words">Additional tags:</p>
+  <div id="tagOutput">
+  </div>
+</div>
+
+<br>
+<button class="but p" type="button" id="cancel">Cancel</button>
+<button class="but p" type="button" id="accept">Accept</button>
+</body>
+</html>

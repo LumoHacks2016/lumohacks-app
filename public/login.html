@@ -1,0 +1,68 @@
+<div class="login-page">
+  <div class="logo">
+    <img src="/public/logo.png">
+  </div>
+
+  <div id="error-msg-wrap" align="center">
+      <label id="error-msg">Error</label>
+      <br>
+  </div>
+
+
+  <div class="form">
+
+   </form>
+    <form class="login-form" id="login-form">
+      <input id="login-user" type="text" placeholder="username"/>
+      <input id="login-pass" type="password" placeholder="password"/>
+      <button>login</button>
+      
+    </form>
+	
+	</div> 
+	<div class= "text" align="center">
+      <h1>Register for a new account</h1>
+      <br>
+  </div>
+	<div class= "form">
+    <form class="register-form" id="register-form">
+		
+      <input id="register-user" type="text" placeholder="username"/>
+      <input id="register-pass" type="password" placeholder="password"/>
+      <button>sign up</button>
+	 </div>
+  
+</div>
+
+<script>
+ jQuery(function ($) {//shorthand document.ready
+  function showErrorMessage(msg){
+    $('#error-msg').val(msg);
+  }
+  var $loginForm = $('#login-form');
+  var $registerForm = $('#register-form');
+    $loginForm.submit(function(e){
+        e.preventDefault();
+        socket.emit('attempt login', {name: $('#login-user').val(), password: $('#login-pass').val()}, function(success){
+            if(success){
+              loadPage('chat');
+              // set page to derp
+            } else {
+              // wasn't successful
+            }
+        });
+    });
+    $registerForm.submit(function(e){
+        e.preventDefault();
+        socket.emit('attempt register', {name: $('#register-user').val(), password: $('#register-pass').val()}, function(success){
+          if(success){
+            loadPage('chat');
+            //document.location.href = "/public/chat.html";
+            // set page to derp
+          } else {
+            // wasn't successful
+          }
+        });
+    });
+});
+</script>
