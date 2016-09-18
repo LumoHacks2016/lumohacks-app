@@ -36,7 +36,6 @@
             socket.emit('change description', $descriptionField.val(), function(success){});
             updateTagValues();
             socket.emit('change tags', tags, function(success){});
-            alert("accept");
             loadPage('chat');
         });
 
@@ -46,7 +45,6 @@
             socket.emit('change name', name_old, function(success){});
             socket.emit('change description', description_old, function(success){});
             socket.emit('change tags', tags_old, function(success){});
-            alert("cancel");
             loadPage('chat');
         });
 

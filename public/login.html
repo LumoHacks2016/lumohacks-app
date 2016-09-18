@@ -3,7 +3,7 @@
     <img src="/public/logo.png">
   </div>
 
-  <div id="error-msg-wrap" align="center">
+  <div id="error-msg-wrap" align="center" hidden="true">
       <label id="error-msg">Error</label>
       <br>
   </div>
@@ -37,32 +37,30 @@
 <script>
  jQuery(function ($) {//shorthand document.ready
   function showErrorMessage(msg){
+    $('#error-msg-wrap').show();
     $('#error-msg').html(msg);
   }
   var $loginForm = $('#login-form');
   var $registerForm = $('#register-form');
     $loginForm.submit(function(e){
         e.preventDefault();
-        socket.emit('attempt login', {name: $('#login-user').val(), password: $('#login-pass').val()}, function(success,errmsg){
+        socket.emit('attempt login', {name: $('#login-user').val(), password: $('#login-pass').val()}, function(success, errmsg){
             if(success){
               loadPage('chat');
-              // set page to derp
+              socket.emit('login',  {name: $('#login-user').val(), password: $('#login-pass').val()}, function(data){});
             } else {
-              // wasn't successful
-              showErrorMessage(errmsg);
+               showErrorMessage(errmsg);
             }
         });
     });
     $registerForm.submit(function(e){
         e.preventDefault();
-        socket.emit('attempt register', {name: $('#register-user').val(), password: $('#register-pass').val()}, function(success,errmsg){
+        socket.emit('attempt register', {name: $('#register-user').val(), password: $('#register-pass').val()}, function(success, errmsg){
           if(success){
             loadPage('chat');
-            //document.location.href = "/public/chat.html";
-            // set page to derp
+              socket.emit('login',  {name: $('#login-user').val(), password: $('#login-pass').val()}, function(data){});
           } else {
-            // wasn't successful
-            showErrorMessage(errmsg);
+             showErrorMessage(errmsg);
           }
         });
     });

@@ -237,7 +237,12 @@
         });
 
         socket.on('connected', function(data){
-             $('#nickWrap').html("Chatting with " + data+"!");
+            alert("You've been matched!");
+             $('#nickWrap').html("Chatting with " + data.name+"!");
+        });
+
+        socket.on('left chatroom', function(){
+            $('#nickWrap').html("Chatting with no one at the moment");
         });
 
         socket.on('new message', function (data) {
@@ -330,6 +335,8 @@
                 displayNotice('Your description must be at least one character.');
             }
         });
+
+        socket.emit('enter chatroom', function(){});
 
         $('#page2Wrap').hide();
         $('#prevPage').hide();
