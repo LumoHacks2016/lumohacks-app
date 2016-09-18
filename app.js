@@ -224,16 +224,19 @@ socket.on('attempt login', function(data, callback){
         if(err){ // do something with error          
         }
         if(!results.length){
-            console.log("Error, that account name doesn't exist.");
-            callback(false);
+            // console.log("Error, that account name doesn't exist.");
+            // callback(false);
+            callback(false, "Error, that account name doesn't exist.");
         } else {
             if(results[0].password === data.password){
-                callback(true);
+                // callback(true);
+                callback(true,"");
                 //socket.emit('new user', {name: data.name, password: data.password});
                 handleUserLogin(socket, data);
             } else {
-                console.log("Error, the password is wrong.");
-                callback(false);
+                // console.log("Error, the password is wrong.");
+                // callback(false);
+                callback(false, "Error, the password is wrong.");
             }
         }
     });
@@ -244,7 +247,8 @@ socket.on('attempt register', function(data, callback){
         if(err){            
         }
         if(!results.length){
-            callback(true);
+            // callback(true);
+            callback(true, "");
             var newUser = new Credentials({name: data.name, password: data.password});
             newUser.save(function (err) {
                 if (err) throw err;
@@ -253,8 +257,9 @@ socket.on('attempt register', function(data, callback){
             //socket.emit('new user', {name: data.name, password: data.password});
             handleUserLogin(socket, data);
         } else {
-            console.log("Error, the account name already exists.");
-            callback(false);
+            // console.log("Error, the account name already exists.");
+            // callback(false);
+            callback(false, "Error, the account name already exists.");
         }
     });
 });
