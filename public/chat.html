@@ -1,23 +1,41 @@
 <html>
 <head>
-    <title>Chatter</title>
+    <title>Cinder</title>
+	<link rel="stylesheet" type="text/css" href="chat.css">
+	
     <style>
+	@import url(https://fonts.googleapis.com/css?family=Roboto:300);
         #chat {
-            height: 500px;
+            height: 700px;
         }
         #contentWrap {
         }
+		
         #chatWrap {
+			font-family: "Roboto", sans-serif
             float: left;
-            background-color: lightgray;
+            background-color: #FFFFFF;
             border-radius: 5px;
+			box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+			margin: 20px auto;
+			padding: 20px;
+			
         }
+		
         #chat {
             margin: 20px 20px 20px 20px;
-            overflow-y:scroll; height:400px; width: 960px;
+            overflow-y:scroll; height:500px; width: 1300px;
+		
         }
+		
+		
+		#message {
+			background-color: f2f2f2;
+			width: 1300px;
+		}
         #send-message {
             margin: 10px 10px 10px 10px;
+			
         }
         #users {
             float: left;
@@ -30,17 +48,10 @@
             color: white;
             border-radius: 5px;
         }
-        #sidebar{
-            background-color: lightgreen;
-            margin: 10px 10px 10px 10px;
-            padding: 10px 10px;
-            float: left;
-            height: 400px;
-            width: 200px;
-            border-radius: 5px;
-        }
+		
         .padh{
             padding: 0px 10px;
+			font:"Roboto";
         }
         .padv{
             padding: 10px 0px;
@@ -64,37 +75,37 @@
         .alert {
             color: green;
         }
-        .button {
-            background-color: #4CAF50; /* Green */
-            border: none;
-            color: white;
-            padding: 5px 5px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            -webkit-transition-duration: 0.4s; /* Safari */
-            transition-duration: 0.4s;
-            cursor: pointer;
-        }
-        .button1:hover {
-            background-color: white;
-            color: black;
-            border: 2px solid #4CAF50;
-            border-radius: 5px;
-        }
-        .button1 {
-            background-color: #4CAF50;
-            color: white;
-            border: 2px solid #4CAF50;
-            border-radius: 5px;
-        }
-        .inputField{
-            height: 30px;
-            border-radius: 5px;
-        }
+		
+		.nickWrap {
+		
+		}
+
+		.but {
+		padding:10px 20px; 
+		background:#ccc; 
+		border:0 none;
+		cursor:pointer;
+		-webkit-border-radius: 5px;
+		border-radius: 5px; 
+		margin: 10px; 
+		float: right;
+		}
+		
+		.but: hover{ 
+		background: #555;
+		color: white;
+		}
+		
+		#nav {
+		list-style-type: none;
+		display: inline;
+		}
+		
+		
+		
+		
         body {
+	  float:left;
   background: #76b852; /* fallback for old browsers */
   background: -webkit-linear-gradient(right, #76b852, #8DC26F);
   background: -moz-linear-gradient(right, #76b852, #8DC26F);
@@ -109,19 +120,32 @@
 <body>
 <div id="page1Wrap">
     <div class="msg" id="chatWrap">
+	
         <div id="userInfo">
             <div id="nickWrap">
             <p class ="padh">Chatting with no one at the moment</p>
             </div>
             <p class="msg" id="notices" class="padv padh"></p>
+			
         </div>
+		
         <div id="chat"></div>
         <form id="send-message">
-            <input size="35" class="inputField" id="message" autocomplete="off">
-        </form>
+		<ul id="nav">
+        <li class= "navbar"> <input size="35" class="inputField" id="message" placeholder="Enter your message here" autocomplete="off"> </li>
+			
+			
+		<li class= "navbar"> <button id="nextPage" class="but" >Edit Profile</button> </li>
+		<li class="navbar"> <button id="prevPage" class="but" >Chatroom</button>  </li>
+			</ul>
+			
+			<div id="topnav">
+			</div>
     </div>
+        </form>
+		
+	
 </div>
-
 <div id="page2Wrap">
     <!--<h1>Profile Page</h1>
     <p id="username">Username: </p>
