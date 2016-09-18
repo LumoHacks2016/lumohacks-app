@@ -131,56 +131,19 @@
 		
         <div id="chat"></div>
         <form id="send-message">
-		<ul id="nav">
-        <li class= "navbar"> <input size="35" class="inputField" id="message" placeholder="Enter your message here" autocomplete="off"> </li>
+            <input size="35" class="inputField" id="message" placeholder="Enter your message here" autocomplete="off">
+		</form>
 			
-			
-		<li class= "navbar"> <button id="nextPage" class="but" >Edit Profile</button> </li>
-		<li class="navbar"> <button id="prevPage" class="but" >Chatroom</button>  </li>
-			</ul>
-			
-			<div id="topnav">
-			</div>
-    </div>
-        </form>
-		
+		<div id="topnav">
+            <ul id="nav">
+            <li class= "navbar"> <button id="nextPage" class="but" >Edit Profile</button> </li>
+            <li class="navbar"> <button id="prevPage" class="but" >Chatroom</button>  </li>
+            </ul>
+		</div>
+    </div>		
 	
 </div>
-<div id="page2Wrap">
-    <!--<h1>Profile Page</h1>
-    <p id="username">Username: </p>
 
-    <div id ="changeUserWrap">
-        <p>Enter a new username if you wish to change it:</p>
-        <form id="changeUser">
-            <input size="35" id="nicknameChange">
-            <input type="submit" value= "Change Name">
-        </form>
-    </div>
-
-    <div id ="description">
-        <p>Description:</p>
-        <p>Insert description here</p>
-        <form id="changeDescription">
-            <input size="35" id="changeTheDescription">
-            <input type="submit" value="Change Description">
-        </form>
-    </div>
-
-    <div id ="Tags">
-        <p>Tags:</p>
-        <p>Insert tags here</p>
-    </div>
-
-    <div id ="addTags">
-        <p>Enter a new tag:</p>
-        <form id="addATag">
-            <input size="35" id="addTag">
-            <input type="submit" value="Add Tag">
-        </form>
-    </div>-->
-
-</div>
 
 <script>
     jQuery(function ($) {//shorthand document.ready
@@ -279,17 +242,9 @@
         });
 
         $("#nextPage").click(function(){
-            /*$('#page1Wrap').hide();
-            $('#page2Wrap').show();
-            $('#nextPage').hide();
-            $('#prevPage').show();
-            $('#username').val('');
-            $('#username').append(" <b>" + nickname + "</b>");
-*/
            loadPage('profile');
         });
         $("#prevPage").click(function(){
-            $('#page2Wrap').hide();
             $('#page1Wrap').show();
             $('#prevPage').hide();
             $('#nextPage').show();
@@ -310,26 +265,6 @@
                 displayNotice('Message length must be at least one character.');
             }
         });
-
-
-        // $nickForm.submit(function (e) {
-        //     e.preventDefault();
-        //     if($nickBox.val().trim() != "") {
-        //         socket.emit('new user', $nickBox.val(), function (success, nick) {
-        //             if (success) {
-        //                 $('#nickWrap').html('<p class="msg marl mart"> Welcome, ' + nick + '!</br></br></p>');
-        //                 $('#contentWrap').show();
-        //                 nickname = nick;
-        //                 resetNotices();
-        //             } else {
-        //                 displayNotice('That username is already taken. Try again.');
-        //             }
-        //         });
-        //         $nickBox.val('');
-        //     } else {
-        //        displayNotice('Please enter a username');
-        //     }
-        // });
 
         $addATag.submit(function(e){
             e.preventDefault();
@@ -359,7 +294,6 @@
 
         socket.emit('enter chatroom', function(){});
 
-        $('#page2Wrap').hide();
         $('#prevPage').hide();
 
     })
