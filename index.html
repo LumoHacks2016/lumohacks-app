@@ -124,6 +124,121 @@
         <form id="send-message">
             <input size="35" class="inputField" id="message" autocomplete="off">
         </form>
+<html>
+<head>
+    <title>Chatter</title>
+    <style>
+        #chat {
+            height: 500px;
+        }
+        #contentWrap {
+        }
+        #chatWrap {
+            float: left;
+            background-color: lightgray;
+            border-radius: 5px;
+        }
+        #chat {
+            margin: 20px 20px 20px 20px;
+            overflow-y:scroll; height:400px; width: 960px;
+        }
+        #send-message {
+            margin: 10px 10px 10px 10px;
+        }
+        #users {
+            float: left;
+            margin: 10px 10px 10px 10px;
+        }
+        #userInfo{
+            background-color: gray;
+            margin: 10px 10px 10px 10px;
+            padding: 10px 10px;
+            color: white;
+            border-radius: 5px;
+        }
+        #sidebar{
+            background-color: lightgreen;
+            margin: 10px 10px 10px 10px;
+            padding: 10px 10px;
+            float: left;
+            height: 400px;
+            width: 200px;
+            border-radius: 5px;
+        }
+        .padh{
+            padding: 0px 10px;
+        }
+        .padv{
+            padding: 10px 0px;
+        }
+        .marl{
+            margin-left: 10px;
+        }
+        .mart{
+            margin-topL 10px;
+        }
+        .msg{
+            font-family: "Tahoma";
+            line-height: 150%;
+        }
+        .error {
+            color: red;
+        }
+        .whisper {
+            color: gray;
+        }
+        .alert {
+            color: green;
+        }
+        .button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 5px 5px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            -webkit-transition-duration: 0.4s; /* Safari */
+            transition-duration: 0.4s;
+            cursor: pointer;
+        }
+        .button1:hover {
+            background-color: white;
+            color: black;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+        }
+        .button1 {
+            background-color: #4CAF50;
+            color: white;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+        }
+        .inputField{
+            height: 30px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<div id="page1Wrap">
+    <div class="msg" id="chatWrap">
+        <div id="userInfo">
+            <div id="nickWrap">
+            <p class ="padh">Enter a username:</p>
+            <form id="setNick" class="padh">
+                <input size="35" class="inputField" id="nickname" >
+                <input type="submit" class="button button1" value="Set Name">
+            </form>
+            </div>
+            <p class="msg" id="notices" class="padv padh"></p>
+        </div>
+        <div id="chat"></div>
+        <form id="send-message">
+            <input size="35" class="inputField" id="message" autocomplete="off">
+        </form>
     </div>
     <div id="sidebar">
         <p class ="marl msg">Currently online</p>
@@ -131,10 +246,53 @@
     </div>
 </div>
 
+<div id="page2Wrap">
+    <h1>Profile Page</h1>
+    <p id="username">Username: </p>
+
+    <div id ="changeUserWrap">
+        <p>Enter a new username if you wish to change it:</p>
+        <form id="changeUser">
+            <input size="35" id="nicknameChange">
+            <input type="submit" value= "Change Name">
+        </form>
+    </div>
+
+    <div id ="description">
+        <p>Description:</p>
+        <p>Insert description here</p>
+        <form id="changeDescription">
+            <input size="35" id="changeTheDescription">
+            <input type="submit" value="Change Description">
+        </form>
+    </div>
+
+    <div id ="Tags">
+        <p>Tags:</p>
+        <p>Insert tags here</p>
+    </div>
+
+    <div id ="addTags">
+        <p>Enter a new tag:</p>
+        <form id="addATag">
+            <input size="35" id="addTag">
+            <input type="submit" value="Add Tag">
+        </form>
+    </div>
+
+</div>
+
+<button id="nextPage">Edit Profile</button>
+<button id="prevPage">Chatroom</button>
+
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+
+<script src="https://ajax.aspnetcdn.com/ajax/knockout/knockout-3.3.0.js"></script>
+
 <script>
     jQuery(function ($) {//shorthand document.ready
+
         var socket = io.connect(); //from js above
         var $nickForm = $('#setNick');
         var $notices = $('#notices');
@@ -144,6 +302,12 @@
         var $messageBox = $('#message');
         var $chat = $('#chat');
         var nickname;
+
+        var $changeUser = $('#changeUser');
+        var $addATag = $('#addATag');
+        var $nickname = $('nicknameChange');
+        var $changeDescription = $('changeDescription');
+
 
         $nickForm.submit(function (e) {
             e.preventDefault();
@@ -233,6 +397,88 @@
         socket.on('alert', function (data) {
             displayMsg(data, 'alert');
         });
+
+        $("#nextPage").click(function(){
+            $('#page1Wrap').hide();
+            $('#page2Wrap').show();
+            $('#nextPage').hide();
+            $('#prevPage').show();
+            $('#username').val('');
+            $('#username').append(" <b>" + nickname + "</b>");
+
+        });
+        $("#prevPage").click(function(){
+            $('#page2Wrap').hide();
+            $('#page1Wrap').show();
+            $('#prevPage').hide();
+            $('#nextPage').show();
+        });
+
+        $changeUser.submit(function(e){
+            e.preventDefault();
+            if($nickname.val().trim != "") {
+                socket.emit('change user', $changeUser.val(), function(success, nick){
+                    if (success){
+                        nickname = nick;
+                    } else {
+                        displayNotice('That username is already taken. Try again.');
+                    }
+                    $nickBox.val('');
+                });
+            } else {
+                displayNotice('Message length must be at least one character.');
+            }
+        });
+
+
+        // $nickForm.submit(function (e) {
+        //     e.preventDefault();
+        //     if($nickBox.val().trim() != "") {
+        //         socket.emit('new user', $nickBox.val(), function (success, nick) {
+        //             if (success) {
+        //                 $('#nickWrap').html('<p class="msg marl mart"> Welcome, ' + nick + '!</br></br></p>');
+        //                 $('#contentWrap').show();
+        //                 nickname = nick;
+        //                 resetNotices();
+        //             } else {
+        //                 displayNotice('That username is already taken. Try again.');
+        //             }
+        //         });
+        //         $nickBox.val('');
+        //     } else {
+        //        displayNotice('Please enter a username');
+        //     }
+        // });
+
+        $addATag.submit(function(e){
+            e.preventDefault();
+            if($addATag.val().trim != "") {
+                socket.emit('add tag', $addATag.val(), function(data) {
+                    if (data) {
+                        //add tag to tags of user
+                    } 
+                });
+            } else {
+                displayNotice('Tag must be at least one character.');
+            }
+        });
+
+        $changeDescription.submit(function(e){
+            e.preventDefault();
+            if($changeDescription.val().trim != "") {
+                socket.emit('change description', $changeDescription.val(), function(data) {
+                    if (data) {
+                        //add tag to tags of user
+                    } 
+                });
+            } else {
+                displayNotice('Your description must be at least one character.');
+            }
+        });
+
+        $('#page2Wrap').hide();
+        $('#prevPage').hide();
+
     })
 </script>
 </body>
