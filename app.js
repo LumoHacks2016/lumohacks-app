@@ -69,7 +69,7 @@ function handleUserLogin(socket, data){
                     socket.name = data.name;
                     console.log("Set user name to " + data.name);
                     socket.password = data.password;
-                    socket.available = true;
+                    socket.available = false;
                     if(data.tags != null)
                         socket.tags = data.tags;
                     else
@@ -79,9 +79,7 @@ function handleUserLogin(socket, data){
                     else
                         socket.description = "";
                     users[data.name] = socket;
-                    users_available.push(socket);
-                    io.sockets.emit('alert', socket.name + " has entered the chat room.");
-                    tryConnecting(socket);
+                    users_unavailable.push(socket);
                 }
 
                 var query = Chat.find({speaker: socket.name});
@@ -109,8 +107,10 @@ function usersAreMatch(user1, user2){
 
 function tryConnecting(socket){
    for(var i = 0; i<users_available.length; i++){
-    if(!(users_available[i].name === socket.name)){
-        var currentUser = users_available[i];
+ var currentUser = users_available[i];
+    if(!(currentUser.name === socket.name) && socket.available && currentUser.available){
+        socket.available = false;
+        currentUser.available = false;
         /*if(socket.available &&  currentUser.available){
         socket.available = false;
         currentUser.available = false;
@@ -125,11 +125,15 @@ connect(socket, currentUser);
 }
 }
 
+function getUserState(user){
+    return {name: user.name, description: user.description, tags: user.tags};
+}
+
 function connect(user1, user2){
    user2.partner = user1.name;
    user1.partner = user2.name;
-   user1.emit('connected', user2.name);
-   user2.emit('connected', user1.name);
+   user1.emit('connected', getUserState(user2));
+   user2.emit('connected', getUserState(user1));
    console.log("connected " + user2.name + " with " + user1.name);
    movePair(user1, user2, users_available, users_unavailable);
    console.log("available: " + users_available.length + " | unavailable: " + users_unavailable.length);
@@ -160,9 +164,24 @@ function deleteUserFromQueue(user){
     removeIf(queue, function(elem){return user==elem});
 }
 
+function enterChatroom(user){
+    console.log("entered");
+    user.available = true;
+    moveOne(user, users_unavailable, users_available);
+     console.log("available: " + users_available.length + " | unavailable: " + users_unavailable.length);
+    io.sockets.emit('alert', socket.name + " has entered the chat room.");
+    tryConnecting(socket);
+}
+
+socket.on('enter chatroom', function(){
+    enterChatroom(socket);
+});
+
 socket.on('send message', function (data, callback) {
+    console.log("My partner is " + socket.partner +", whose partner is " + socket.name);
+     console.log("available: " + users_available.length + " | unavailable: " + users_unavailable.length);
     str = data.trim();
-    if(socket.partner == null || socket.available){
+    if(users[socket.partner] == null || socket.available){
         socket.emit('alert', "No partner to chat with.");
         return;
     }
@@ -174,18 +193,31 @@ socket.on('send message', function (data, callback) {
     });
 });
 
+function outputUsers(){
+    for (var k in users){
+    if (users.hasOwnProperty(k)) {
+         console.log("Key is " + k + ", value is " + users[k].name);
+    }
+}
+}
+
 socket.on('disconnect', function (data) {
+    console.log("A user has disconnected.");
     if (!socket.name) return;
     io.sockets.emit('alert', socket.name + " has quit the chat room.");
-    if(!socket.available){
-        moveOne(users[socket.partner], users_unavailable, users_available);
+
+    if(users[socket.partner] != null){
+        enterChatroom(users[socket.partner]);
+        users[socket.partner].emit('left chatroom');
+        console.log(socket.partner + " has been returned to lobby.");
     }
     deleteUserFromQueue(users[socket.name]);
     delete users[socket.name];
+    console.log("available: " + users_available.length + " | unavailable: " + users_unavailable.length);
 });
 
 socket.on('get socket state', function (data) {
-    console.log("state of : " + socket.name);
+    //console.log("state of : " + socket.name);
    socket.emit('receive socket state', {name: socket.name, description: socket.description, tags: socket.tags});
 });
 
@@ -219,23 +251,23 @@ socket.on('change description', function(data, callback){
    //  socket.emit('receive socket state', {name: socket.name, description: socket.description, tags: socket.tags});
 });
 
+socket.on('login', function(data,callback){
+    handleUserLogin(socket, data);
+    callback({name: socket.name, description: socket.description, tags: socket.tags});
+});
+
 socket.on('attempt login', function(data, callback){
     var query = Credentials.find({name: data.name}, function(err,results) {
         if(err){ // do something with error          
         }
         if(!results.length){
-            // console.log("Error, that account name doesn't exist.");
-            // callback(false);
+            console.log("Error, that account name doesn't exist.");
             callback(false, "Error, that account name doesn't exist.");
         } else {
             if(results[0].password === data.password){
-                // callback(true);
-                callback(true,"");
+                callback(true);
                 //socket.emit('new user', {name: data.name, password: data.password});
-                handleUserLogin(socket, data);
             } else {
-                // console.log("Error, the password is wrong.");
-                // callback(false);
                 callback(false, "Error, the password is wrong.");
             }
         }
@@ -247,7 +279,6 @@ socket.on('attempt register', function(data, callback){
         if(err){            
         }
         if(!results.length){
-            // callback(true);
             callback(true, "");
             var newUser = new Credentials({name: data.name, password: data.password});
             newUser.save(function (err) {
@@ -255,11 +286,9 @@ socket.on('attempt register', function(data, callback){
                 console.log("Saved user " + data.name + " to the db.");
             });
             //socket.emit('new user', {name: data.name, password: data.password});
-            handleUserLogin(socket, data);
         } else {
-            // console.log("Error, the account name already exists.");
-            // callback(false);
-            callback(false, "Error, the account name already exists.");
+            console.log("Error, the account name already exists.");
+             callback(false, "Error, the account name already exists.");
         }
     });
 });
